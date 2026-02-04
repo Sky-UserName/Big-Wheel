@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useMemo } from 'react';
 import Wheel from './components/Wheel';
 import WinnerModal from './components/WinnerModal';
@@ -5,7 +6,8 @@ import { Employee, Prize } from './types';
 import { DEFAULT_EMPLOYEES, DEFAULT_PRIZES } from './constants';
 
 const App: React.FC = () => {
-  const [lang, setLang] = useState<'en' | 'zh'>('zh');
+  // Changed default language to English
+  const [lang, setLang] = useState<'en' | 'zh'>('en');
   const [allEmployees, setAllEmployees] = useState<Employee[]>(() => 
     [...DEFAULT_EMPLOYEES].sort(() => Math.random() - 0.5)
   );
@@ -140,9 +142,12 @@ const App: React.FC = () => {
         <div className="absolute top-[10%] left-[-5%] w-[800px] h-[800px] bg-yellow-500/5 rounded-full blur-[150px]"></div>
       </div>
 
+      {/* Language toggle button hidden as requested */}
+      {/* 
       <button onClick={() => setLang(lang === 'en' ? 'zh' : 'en')} className="fixed top-8 right-8 z-50 px-6 py-2 bg-black/40 border border-yellow-500/40 rounded-full text-yellow-500 font-bold hover:bg-yellow-500 hover:text-red-950 transition-all shadow-xl active:scale-95">
         {t.langToggle}
-      </button>
+      </button> 
+      */}
 
       <header className="z-10 text-center mb-10 px-4">
         <h1 className="text-7xl md:text-9xl font-festive gold-text font-bold mb-4 drop-shadow-xl tracking-wide">GALA 2026</h1>
