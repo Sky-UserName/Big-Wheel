@@ -7,9 +7,12 @@ import { DEFAULT_EMPLOYEES, DEFAULT_PRIZES } from './constants';
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<'en' | 'zh'>('en');
+  
+  // 初始化名单时，直接过滤掉老板 (Owen, Lucas, David)
   const [allEmployees, setAllEmployees] = useState<Employee[]>(() => 
-    [...DEFAULT_EMPLOYEES].sort(() => Math.random() - 0.5)
+    DEFAULT_EMPLOYEES.filter(e => !e.isBoss).sort(() => Math.random() - 0.5)
   );
+  
   const [prizes, setPrizes] = useState<Prize[]>(DEFAULT_PRIZES);
   const [selectedPrizeId, setSelectedPrizeId] = useState<string>(DEFAULT_PRIZES[0].id);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -22,16 +25,35 @@ const App: React.FC = () => {
 
   const currentPrize = useMemo(() => prizes.find(p => p.id === selectedPrizeId), [prizes, selectedPrizeId]);
 
+  // 获取所有被内定的人员名单 (用于跨奖项隔离)
+  const allReservedNames = useMemo(() => {
+    return prizes
+      .filter(p => p.reservedFor)
+      .map(p => p.reservedFor!.toUpperCase());
+  }, [prizes]);
+
+  // 大转盘上显示的名单 (包含测试员 Evelyn)
   const activeEmployeesForWheel = useMemo(() => {
     if (!currentPrize) return [];
-    let filtered = allEmployees.filter(e => !e.hasWon && !e.neverWins);
-    // 受限奖项 ID 列表
-    const topPrizeIds = ['p1', 'p2', 'p3', 'p4']; 
-    if (topPrizeIds.includes(currentPrize.id)) {
-      filtered = filtered.filter(e => !e.isBoss);
+    
+    // 基础：未中奖
+    let filtered = allEmployees.filter(e => !e.hasWon);
+
+    if (currentPrize.reservedFor) {
+      // 场景 A：当前是内定奖。池子包含：该内定人 + 其他“完全没有被内定过”的人（含测试员）
+      const reservedName = currentPrize.reservedFor.toUpperCase();
+      filtered = filtered.filter(e => {
+        const isThisReserved = e.name.toUpperCase().includes(reservedName);
+        const isReservedForOtherPrizes = allReservedNames.includes(e.name.toUpperCase()) && !isThisReserved;
+        return isThisReserved || !isReservedForOtherPrizes;
+      });
+    } else {
+      // 场景 B：当前是普通奖。池子必须排除：所有“内定给其他奖项”的人员
+      filtered = filtered.filter(e => !allReservedNames.includes(e.name.toUpperCase()));
     }
+    
     return filtered;
-  }, [allEmployees, currentPrize]);
+  }, [allEmployees, currentPrize, allReservedNames]);
 
   const [targetWinnerIndex, setTargetWinnerIndex] = useState<number | null>(null);
   const [plannedWinner, setPlannedWinner] = useState<Employee | null>(null);
@@ -100,11 +122,23 @@ const App: React.FC = () => {
     }
 
     let winner: Employee | null = null;
+    
+    // 1. 优先判定内定
     if (currentPrize.reservedFor) {
-      winner = activeEmployeesForWheel.find(e => e.name.toUpperCase().includes(currentPrize.reservedFor!.toUpperCase())) || null;
+      const reservedName = currentPrize.reservedFor.toUpperCase();
+      winner = activeEmployeesForWheel.find(e => e.name.toUpperCase().includes(reservedName)) || null;
     }
+
+    // 2. 如果没内定，从池子中随机选。但必须拦截 neverWins (Evelyn)
     if (!winner) {
-      winner = activeEmployeesForWheel[Math.floor(Math.random() * activeEmployeesForWheel.length)];
+      const trulyQualified = activeEmployeesForWheel.filter(e => !e.neverWins);
+      if (trulyQualified.length > 0) {
+        winner = trulyQualified[Math.floor(Math.random() * trulyQualified.length)];
+      } else {
+        // 万一池子里全是测试员（极端情况）
+        alert(lang === 'zh' ? "没有可中奖的有效候选人！" : "No winnable candidates!");
+        return;
+      }
     }
 
     const winnerIdx = activeEmployeesForWheel.findIndex(e => e.id === winner?.id);
@@ -148,6 +182,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-8 relative overflow-hidden text-white">
+      {/* 背景装饰保持不变 */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#b91d1d_0%,#450a0a_100%)]"></div>
         <div className="absolute top-[10%] left-[-5%] w-[800px] h-[800px] bg-yellow-500/5 rounded-full blur-[150px]"></div>
@@ -170,6 +205,7 @@ const App: React.FC = () => {
 
       <div className="z-10 w-full max-w-[1900px] flex flex-col xl:flex-row gap-12 items-start justify-center px-10">
         <div className="flex-[3] flex flex-col items-center space-y-12 w-full">
+          {/* 奖项展示区 */}
           <div className="w-full max-w-3xl p-1 bg-gradient-to-br from-yellow-500/40 via-yellow-500/10 to-transparent rounded-[3rem]">
             <div className="bg-black/60 backdrop-blur-2xl rounded-[2.8rem] p-8 flex items-center justify-between border border-white/5">
               <div className="flex flex-col">
@@ -203,6 +239,7 @@ const App: React.FC = () => {
         </div>
 
         <div className="w-full xl:w-[500px] flex flex-col space-y-8">
+          {/* 奖项看板 */}
           <div className="bg-black/40 backdrop-blur-3xl rounded-[3rem] p-8 border border-yellow-500/20 shadow-2xl">
              <h3 className="text-2xl font-black text-yellow-500 tracking-tighter mb-6 flex items-center gap-3">
                <span className="text-3xl">🏆</span> {t.prizes}
@@ -245,6 +282,7 @@ const App: React.FC = () => {
              </div>
           </div>
 
+          {/* 参奖名单列表 (已排除老板) */}
           <div className="bg-black/40 backdrop-blur-3xl rounded-[3rem] p-8 border border-yellow-500/20 shadow-2xl flex-1 flex flex-col min-h-[400px]">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-2xl font-black text-yellow-500 tracking-tighter flex items-center gap-3">
@@ -271,7 +309,9 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <div className="text-[10px] font-bold text-white/20">#{String(i + 1).padStart(3, '0')}</div>
                     <div className="flex flex-col">
-                       <span className={`font-bold transition-colors ${emp.hasWon ? 'line-through text-white/40' : 'text-white group-hover:text-yellow-400'}`}>{emp.name}</span>
+                       <span className={`font-bold transition-colors ${emp.hasWon ? 'line-through text-white/40' : 'text-white group-hover:text-yellow-400'}`}>
+                         {emp.name} {emp.neverWins && <span className="ml-2 text-[8px] opacity-40 font-normal">(Tester)</span>}
+                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
