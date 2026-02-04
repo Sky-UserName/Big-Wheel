@@ -133,7 +133,7 @@ export const DEFAULT_PRIZES: Prize[] = [
     id: 'p10', 
     level: 'Consolation prize', 
     name: 'Angpao', 
-    icon: 'https://images.unsplash.com/photo-1613919113166-ca231660d16a?auto=format&fit=crop&w=800&q=80', 
+    icon: 'https://printingmalaysia.com.my/wp-content/uploads/2024/08/angpao.png', 
     total: 100, 
     remaining: 100, 
     winners: [] 
