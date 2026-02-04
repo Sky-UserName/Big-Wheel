@@ -6,7 +6,6 @@ import { Employee, Prize } from './types';
 import { DEFAULT_EMPLOYEES, DEFAULT_PRIZES } from './constants';
 
 const App: React.FC = () => {
-  // Changed default language to English
   const [lang, setLang] = useState<'en' | 'zh'>('en');
   const [allEmployees, setAllEmployees] = useState<Employee[]>(() => 
     [...DEFAULT_EMPLOYEES].sort(() => Math.random() - 0.5)
@@ -26,8 +25,9 @@ const App: React.FC = () => {
   const activeEmployeesForWheel = useMemo(() => {
     if (!currentPrize) return [];
     let filtered = allEmployees.filter(e => !e.hasWon && !e.neverWins);
-    const topFourIds = ['p1', 'p2', 'p3', 'p4'];
-    if (topFourIds.includes(currentPrize.id)) {
+    // 更新受限奖项 ID 列表，以防 ID 顺序变化影响逻辑
+    const topPrizeIds = ['p1', 'p2', 'p3', 'p4']; 
+    if (topPrizeIds.includes(currentPrize.id)) {
       filtered = filtered.filter(e => !e.isBoss);
     }
     return filtered;
@@ -135,6 +135,10 @@ const App: React.FC = () => {
     setTargetWinnerIndex(null);
   }, [plannedWinner, currentPrize, selectedPrizeId]);
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = "https://images.unsplash.com/photo-1578262825743-a4e402caab76?auto=format&fit=crop&q=80&w=200";
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center py-8 relative overflow-hidden text-white">
       <div className="fixed inset-0 pointer-events-none z-0">
@@ -142,14 +146,15 @@ const App: React.FC = () => {
         <div className="absolute top-[10%] left-[-5%] w-[800px] h-[800px] bg-yellow-500/5 rounded-full blur-[150px]"></div>
       </div>
 
-      {/* Language toggle button hidden as requested */}
-      {/* 
-      <button onClick={() => setLang(lang === 'en' ? 'zh' : 'en')} className="fixed top-8 right-8 z-50 px-6 py-2 bg-black/40 border border-yellow-500/40 rounded-full text-yellow-500 font-bold hover:bg-yellow-500 hover:text-red-950 transition-all shadow-xl active:scale-95">
-        {t.langToggle}
-      </button> 
-      */}
-
       <header className="z-10 text-center mb-10 px-4">
+        <div className="flex justify-center mb-4">
+           <button 
+             onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
+             className="px-4 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-500 text-xs font-bold hover:bg-yellow-500 hover:text-red-950 transition-all"
+           >
+             {t.langToggle}
+           </button>
+        </div>
         <h1 className="text-7xl md:text-9xl font-festive gold-text font-bold mb-4 drop-shadow-xl tracking-wide">GALA 2026</h1>
         <div className="inline-block px-12 py-3 rounded-full bg-black/40 border border-yellow-500/40">
            <span className="text-yellow-400 font-black tracking-[0.4em] text-xl md:text-3xl uppercase">{t.drawTitle}</span>
@@ -167,7 +172,11 @@ const App: React.FC = () => {
               </div>
               <div className="flex flex-col items-end">
                 <div className="w-32 h-32 relative">
-                  <img src={currentPrize?.icon} className="w-full h-full object-cover rounded-2xl border-2 border-yellow-500/30 shadow-2xl" />
+                  <img 
+                    src={currentPrize?.icon} 
+                    onError={handleImageError}
+                    className="w-full h-full object-cover rounded-2xl border-2 border-yellow-500/30 shadow-2xl bg-black/20" 
+                  />
                 </div>
                 <div className="mt-4 flex items-center gap-3">
                   <span className="text-yellow-500 font-black text-xs">{t.left}: {currentPrize?.remaining} / {currentPrize?.total}</span>
@@ -202,7 +211,11 @@ const App: React.FC = () => {
                         ${p.remaining <= 0 ? 'opacity-40 grayscale' : 'cursor-pointer'}`}
                    >
                      <div className="flex items-center gap-4">
-                       <img src={p.icon} className="w-12 h-12 object-cover rounded-xl border border-white/10" />
+                       <img 
+                        src={p.icon} 
+                        onError={handleImageError}
+                        className="w-12 h-12 object-cover rounded-xl border border-white/10 bg-black/40" 
+                       />
                        <div className="text-left">
                          <div className={`text-[8px] font-black uppercase tracking-widest ${selectedPrizeId === p.id ? 'text-red-900' : 'text-yellow-600'}`}>{p.level}</div>
                          <div className={`text-sm font-black tracking-tight ${selectedPrizeId === p.id ? 'text-red-950' : 'text-white'}`}>{p.name}</div>
