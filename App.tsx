@@ -25,7 +25,7 @@ const App: React.FC = () => {
   const activeEmployeesForWheel = useMemo(() => {
     if (!currentPrize) return [];
     let filtered = allEmployees.filter(e => !e.hasWon && !e.neverWins);
-    // 更新受限奖项 ID 列表，以防 ID 顺序变化影响逻辑
+    // 受限奖项 ID 列表
     const topPrizeIds = ['p1', 'p2', 'p3', 'p4']; 
     if (topPrizeIds.includes(currentPrize.id)) {
       filtered = filtered.filter(e => !e.isBoss);
@@ -50,7 +50,8 @@ const App: React.FC = () => {
       staff: "Member",
       selectPrize: "Pick a prize",
       langToggle: "中文",
-      won: "Winner"
+      won: "Winner",
+      remove: "Remove"
     },
     zh: {
       drawTitle: "幸运大抽奖",
@@ -65,7 +66,8 @@ const App: React.FC = () => {
       staff: "员工",
       selectPrize: "请选择奖项",
       langToggle: "English",
-      won: "中奖者"
+      won: "中奖者",
+      remove: "删除"
     }
   }[lang];
 
@@ -79,6 +81,11 @@ const App: React.FC = () => {
       }]);
       setNewName("");
     }
+  };
+
+  const handleDeleteEmployee = (id: string) => {
+    if (isSpinning) return;
+    setAllEmployees(prev => prev.filter(emp => emp.id !== id));
   };
 
   const handleSpinStart = () => {
@@ -260,14 +267,26 @@ const App: React.FC = () => {
 
             <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 max-h-[500px]">
               {allEmployees.map((emp, i) => (
-                <div key={emp.id} className={`p-3 rounded-xl border flex justify-between items-center transition-all ${emp.hasWon ? 'bg-black/20 border-white/5 opacity-30 grayscale' : 'bg-white/5 border-white/5 group hover:bg-white/10'}`}>
+                <div key={emp.id} className={`p-3 rounded-xl border flex justify-between items-center transition-all group ${emp.hasWon ? 'bg-black/20 border-white/5 opacity-30 grayscale' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>
                   <div className="flex items-center gap-4">
                     <div className="text-[10px] font-bold text-white/20">#{String(i + 1).padStart(3, '0')}</div>
                     <div className="flex flex-col">
-                       <span className={`font-bold ${emp.hasWon ? 'line-through text-white/40' : 'text-white group-hover:text-yellow-400'}`}>{emp.name}</span>
+                       <span className={`font-bold transition-colors ${emp.hasWon ? 'line-through text-white/40' : 'text-white group-hover:text-yellow-400'}`}>{emp.name}</span>
                     </div>
                   </div>
-                  {emp.hasWon && <span className="text-[9px] font-black text-yellow-500/50 uppercase italic">{t.won}</span>}
+                  <div className="flex items-center gap-3">
+                    {emp.hasWon && <span className="text-[9px] font-black text-yellow-500/50 uppercase italic">{t.won}</span>}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDeleteEmployee(emp.id); }}
+                      disabled={isSpinning}
+                      className={`text-[10px] p-1.5 rounded-lg border border-red-500/30 text-red-500/50 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 ${isSpinning ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      title={t.remove}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
