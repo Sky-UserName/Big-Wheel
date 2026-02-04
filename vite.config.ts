@@ -8,6 +8,10 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+          // 强制正确的 MIME 类型
+        headers: {
+          'Content-Type': 'application/javascript'
+        }
       },
       plugins: [react()],
       define: {
