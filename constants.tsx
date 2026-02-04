@@ -80,14 +80,14 @@ export const DEFAULT_PRIZES: Prize[] = [
     id: 'p4', 
     level: 'Consolation prize', 
     name: 'Projector', 
-    icon: '/images/Projector', 
+    icon: 'https://m.media-amazon.com/images/I/61FeT3hvIRL._AC_SY300_SX300_QL70_FMwebp_.jpg', 
     total: 2, 
     remaining: 2, 
     winners: [] 
   },
-  { id: 'p5', level: 'Consolation prize', name: 'Pressure cooker', icon: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&q=80&w=200', total: 1, remaining: 1, winners: [] },
+  { id: 'p5', level: 'Consolation prize', name: 'Pressure cooker', icon: 'https://www.ikea.com/jp/en/images/products/ikea-365-pressure-cooker-stainless-steel__0812235_pe771975_s5.jpg?fit=crop&q=80&w=200', total: 1, remaining: 1, winners: [] },
   { id: 'p6', level: 'Consolation prize', name: 'Headphone', icon: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=200', total: 6, remaining: 6, winners: [] },
-  { id: 'p7', level: 'Consolation prize', name: 'Air fryer', icon: 'https://images.unsplash.com/photo-1626078299034-9694086422b8?auto=format&fit=crop&q=80&w=200', total: 1, remaining: 1, winners: [] },
+  { id: 'p7', level: 'Consolation prize', name: 'Air fryer', icon: 'https://m.media-amazon.com/images/I/51gck0ednrL._AC_SX679_.jpg?auto=format&fit=crop&q=80&w=200', total: 1, remaining: 1, winners: [] },
   { id: 'p8', level: 'Consolation prize', name: 'Vacuum cleaner', icon: 'https://images.unsplash.com/photo-1558317374-067df5f15430?auto=format&fit=crop&q=80&w=200', total: 3, remaining: 3, winners: [] },
   { id: 'p9', level: 'Consolation prize', name: 'Cordless Iron', icon: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&q=80&w=200', total: 2, remaining: 2, winners: [] },
   { id: 'p10', level: 'Consolation prize', name: 'Angpao', icon: 'https://images.unsplash.com/photo-1613919113166-ca231660d16a?auto=format&fit=crop&q=80&w=200', total: 100, remaining: 100, winners: [] }
