@@ -1,9 +1,10 @@
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import Wheel from './components/Wheel';
 import WinnerModal from './components/WinnerModal';
 import { Employee, Prize } from './types';
 import { DEFAULT_EMPLOYEES, DEFAULT_PRIZES } from './constants';
+import { generateBlessing } from './services/geminiService';
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<'en' | 'zh'>('zh');
@@ -14,26 +15,24 @@ const App: React.FC = () => {
   const [prizes, setPrizes] = useState<Prize[]>(DEFAULT_PRIZES);
   const [selectedPrizeId, setSelectedPrizeId] = useState<string>(DEFAULT_PRIZES[0].id);
   const [isSpinning, setIsSpinning] = useState(false);
+  
   const [lastWinner, setLastWinner] = useState<Employee | null>(null);
   const [lastPrize, setLastPrize] = useState<Prize | null>(null);
+  const [aiBlessing, setAiBlessing] = useState<string>("");
+
   const [showConfig, setShowConfig] = useState(false);
   const [newName, setNewName] = useState("");
 
   const currentPrize = useMemo(() => prizes.find(p => p.id === selectedPrizeId), [prizes, selectedPrizeId]);
 
-  // 获取适合转盘的参与者（根据当前奖项动态变化）
+  // 规则过滤逻辑（保持不变）
   const activeEmployeesForWheel = useMemo(() => {
     if (!currentPrize) return [];
-    
-    // 基本过滤：未中奖 且 不是永远不中奖人员 (Evelyn)
     let filtered = allEmployees.filter(e => !e.hasWon && !e.neverWins);
-
-    // 规则过滤：Boss 不能抽中前四个大奖 (p1, p2, p3, p4)
     const topFourIds = ['p1', 'p2', 'p3', 'p4'];
     if (topFourIds.includes(currentPrize.id)) {
       filtered = filtered.filter(e => !e.isBoss);
     }
-
     return filtered;
   }, [allEmployees, currentPrize]);
 
@@ -52,10 +51,8 @@ const App: React.FC = () => {
       register: "Add Guest",
       left: "Stock",
       staff: "Member",
-      boss: "LEADER",
       selectPrize: "Pick a prize",
       langToggle: "中文",
-      emptyPool: "Ballroom Empty",
       won: "Winner"
     },
     zh: {
@@ -69,10 +66,8 @@ const App: React.FC = () => {
       register: "登记入场",
       left: "剩余",
       staff: "员工",
-      boss: "领导",
       selectPrize: "请选择奖项",
       langToggle: "English",
-      emptyPool: "暂无参奖人员",
       won: "中奖者"
     }
   }[lang];
@@ -92,22 +87,18 @@ const App: React.FC = () => {
   const handleSpinStart = () => {
     if (isSpinning) return;
     if (activeEmployeesForWheel.length === 0) {
-      alert(lang === 'zh' ? "没有符合该奖项的候选人！" : "No qualified candidates for this prize!");
+      alert(lang === 'zh' ? "没有符合该奖项的候选人！" : "No qualified candidates!");
       return;
     }
     if (!currentPrize || currentPrize.remaining <= 0) {
-      alert(lang === 'zh' ? "该奖项已抽完！" : "Selected prize is out of stock!");
+      alert(lang === 'zh' ? "该奖项已抽完！" : "Out of stock!");
       return;
     }
 
     let winner: Employee | null = null;
-    
-    // 内定逻辑优先
     if (currentPrize.reservedFor) {
       winner = activeEmployeesForWheel.find(e => e.name.toUpperCase().includes(currentPrize.reservedFor!.toUpperCase())) || null;
     }
-
-    // 随机抽取
     if (!winner) {
       winner = activeEmployeesForWheel[Math.floor(Math.random() * activeEmployeesForWheel.length)];
     }
@@ -118,15 +109,19 @@ const App: React.FC = () => {
     setIsSpinning(true);
     setLastWinner(null);
     setLastPrize(null);
+    setAiBlessing("");
   };
 
-  const handleSpinEnd = useCallback(() => {
+  const handleSpinEnd = useCallback(async () => {
     if (!plannedWinner || !currentPrize) return;
 
     setLastWinner(plannedWinner);
     setLastPrize(currentPrize);
     setIsSpinning(false);
     
+    // 异步获取 AI 贺词
+    generateBlessing(plannedWinner.name, plannedWinner.department, currentPrize.name).then(setAiBlessing);
+
     setAllEmployees(prev => prev.map(e => e.id === plannedWinner.id ? { ...e, hasWon: true } : e));
     
     setPrizes(prev => {
@@ -135,7 +130,6 @@ const App: React.FC = () => {
           ? { ...p, remaining: p.remaining - 1, winners: [...(p.winners || []), plannedWinner.name] } 
           : p
       );
-      
       const current = updatedPrizes.find(p => p.id === selectedPrizeId);
       if (current && current.remaining <= 0) {
         const nextPrize = updatedPrizes.find(p => p.remaining > 0);
@@ -155,7 +149,7 @@ const App: React.FC = () => {
         <div className="absolute top-[10%] left-[-5%] w-[800px] h-[800px] bg-yellow-500/5 rounded-full blur-[150px]"></div>
       </div>
 
-      <button onClick={() => setLang(lang === 'en' ? 'zh' : 'en')} className="fixed top-8 right-8 z-50 px-6 py-2 bg-black/40 border border-yellow-500/40 rounded-full text-yellow-500 font-bold hover:bg-yellow-500 hover:text-red-950 transition-all">
+      <button onClick={() => setLang(lang === 'en' ? 'zh' : 'en')} className="fixed top-8 right-8 z-50 px-6 py-2 bg-black/40 border border-yellow-500/40 rounded-full text-yellow-500 font-bold hover:bg-yellow-500 hover:text-red-950 transition-all shadow-xl active:scale-95">
         {t.langToggle}
       </button>
 
@@ -208,8 +202,8 @@ const App: React.FC = () => {
                       disabled={isSpinning}
                       onClick={() => setSelectedPrizeId(p.id)}
                       className={`w-full flex items-center justify-between p-3.5 rounded-2xl border transition-all duration-300
-                        ${selectedPrizeId === p.id ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 border-white text-red-950 scale-[1.03]' : 'bg-white/5 border-white/5 text-white/50 hover:bg-white/10'}
-                        ${p.remaining <= 0 ? 'opacity-40 grayscale' : 'cursor-not-allowed'}`}
+                        ${selectedPrizeId === p.id ? 'bg-gradient-to-r from-yellow-500 to-yellow-600 border-white text-red-950 scale-[1.03] shadow-lg' : 'bg-white/5 border-white/5 text-white/50 hover:bg-white/10'}
+                        ${p.remaining <= 0 ? 'opacity-40 grayscale' : 'cursor-pointer'}`}
                    >
                      <div className="flex items-center gap-4">
                        <img src={p.icon} className="w-12 h-12 object-cover rounded-xl border border-white/10" />
@@ -242,7 +236,7 @@ const App: React.FC = () => {
               </h3>
               <div className="flex items-center gap-3">
                 <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{activeEmployeesForWheel.length} {t.guests}</span>
-                <button onClick={() => setShowConfig(!showConfig)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-yellow-500">
+                <button onClick={() => setShowConfig(!showConfig)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-yellow-500 hover:text-red-950 transition-all shadow-lg">
                   {showConfig ? '×' : '+'}
                 </button>
               </div>
@@ -250,8 +244,8 @@ const App: React.FC = () => {
 
             {showConfig && (
               <form onSubmit={handleAddEmployee} className="mb-6 animate-fade-in">
-                <input value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-white text-sm mb-2" placeholder={t.namePlaceholder} />
-                <button className="w-full bg-yellow-500 text-red-950 font-black py-3 rounded-xl text-[10px] uppercase tracking-widest">{t.register}</button>
+                <input value={newName} onChange={e => setNewName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-white text-sm mb-2 focus:border-yellow-500 outline-none" placeholder={t.namePlaceholder} />
+                <button className="w-full bg-yellow-500 text-red-950 font-black py-3 rounded-xl text-[10px] uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all">{t.register}</button>
               </form>
             )}
 
@@ -261,6 +255,7 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <div className="text-[10px] font-bold text-white/20">#{String(i + 1).padStart(3, '0')}</div>
                     <div className="flex flex-col">
+                       {/* 名单内不再显示任何 Boss 或特殊标签 */}
                        <span className={`font-bold ${emp.hasWon ? 'line-through text-white/40' : 'text-white group-hover:text-yellow-400'}`}>{emp.name}</span>
                     </div>
                   </div>
@@ -272,11 +267,15 @@ const App: React.FC = () => {
         </div>
       </div>
 
-      <WinnerModal winner={lastWinner} prize={lastPrize} onClose={() => { setLastWinner(null); setLastPrize(null); }} lang={lang} />
+      <WinnerModal 
+        winner={lastWinner} 
+        prize={lastPrize} 
+        blessing={aiBlessing}
+        onClose={() => { setLastWinner(null); setLastPrize(null); setAiBlessing(""); }} 
+        lang={lang} 
+      />
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(234, 179, 8, 0.2); border-radius: 10px; }
         .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
         @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
