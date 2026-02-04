@@ -71,7 +71,7 @@ export const DEFAULT_PRIZES: Prize[] = [
      id: 'p3', 
     level: 'Third Prize', 
     name: 'Smart watch', 
-    icon: './images/Smartwatch.jpg', 
+    icon: '/images/Smartwatch.jpg', 
     total: 1, 
     remaining: 1, 
     winners: [] 
@@ -80,7 +80,7 @@ export const DEFAULT_PRIZES: Prize[] = [
     id: 'p4', 
     level: 'Consolation prize', 
     name: 'Projector', 
-    icon: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&q=80&w=600', 
+    icon: '/images/Projector', 
     total: 2, 
     remaining: 2, 
     winners: [] 
