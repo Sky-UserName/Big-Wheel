@@ -103,26 +103,26 @@ export const DEFAULT_PRIZES: Prize[] = [
   { 
     id: 'p3', 
     level: 'Third Prize', 
-    name: 'Smart watch', 
-    icon: 'https://www.lapcare.com/cdn/shop/files/Fitso_3_black.jpg?v=1757325785&width=600', 
+    name: 'Cash RM 2888', 
+    icon: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?auto=format&fit=crop&q=80&w=600',  
     total: 1, 
     remaining: 1, 
-    winners: [] 
+    winners: [] , 
+    reservedFor: 'TEOH ZHEN QING' 
   },
   { 
     id: 'p2', 
     level: 'Second Prize', 
-    name: 'Cash RM 2888', 
-    icon: 'https://images.unsplash.com/photo-1580519542036-c47de6196ba5?auto=format&fit=crop&q=80&w=600', 
-    total: 2, 
-    remaining: 2, 
-    winners: [], 
-    reservedFor: 'TEOH ZHEN QING' 
+    name: 'Cash RM 3888', 
+    icon: 'https://cdn.store-assets.com/s/794884/i/55611614.jpeg?width=1024', 
+    total: 1, 
+    remaining: 1, 
+    winners: []
   },
   { 
     id: 'p1', 
     level: 'First Prize', 
-    name: 'iPhone 17 256GB', 
+    name: 'iPhone 17 ', 
     icon: 'https://img1.kakaku.k-img.com/images/productimage/l/J0000048748.jpg', 
     total: 1, 
     remaining: 1, 
