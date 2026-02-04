@@ -15,7 +15,7 @@ interface WheelProps {
 const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerIndex, onSpinEnd, onStart, lang }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [rotation, setRotation] = useState(0);
-  const rotationRef = useRef(0);
+  const rotationRef = useRef(0); // 存储当前旋转的绝对弧度值
   const [bulbState, setBulbState] = useState(false);
 
   useEffect(() => {
@@ -29,34 +29,30 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // 获取高分屏缩放比例
     const dpr = window.devicePixelRatio || 1;
-    const displayWidth = 720;
-    const displayHeight = 720;
+    const displaySize = 720;
 
-    // 设置 Canvas 实际渲染尺寸
-    if (canvas.width !== displayWidth * dpr) {
-      canvas.width = displayWidth * dpr;
-      canvas.height = displayHeight * dpr;
-      canvas.style.width = `${displayWidth}px`;
-      canvas.style.height = `${displayHeight}px`;
+    if (canvas.width !== displaySize * dpr) {
+      canvas.width = displaySize * dpr;
+      canvas.height = displaySize * dpr;
+      canvas.style.width = `${displaySize}px`;
+      canvas.style.height = `${displaySize}px`;
     }
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // 坐标系缩放
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    const size = displayWidth;
-    const centerX = size / 2;
-    const centerY = size / 2;
-    const outerRadius = size / 2 - 10;
+    const centerX = displaySize / 2;
+    const centerY = displaySize / 2;
+    const outerRadius = displaySize / 2 - 10;
     const frameWidth = 35;
     const wheelRadius = outerRadius - frameWidth;
     
     const items = participants.length > 0 ? participants : [{ name: lang === 'en' ? 'Waiting...' : '等待名单...' }];
     const sliceAngle = (2 * Math.PI) / items.length;
 
-    ctx.clearRect(0, 0, size, size);
+    ctx.clearRect(0, 0, displaySize, displaySize);
 
-    // Outer Glow/Shadow
+    // 外圈光效
     ctx.save();
     ctx.beginPath();
     ctx.arc(centerX, centerY, outerRadius, 0, 2 * Math.PI);
@@ -66,7 +62,7 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
     ctx.fill();
     ctx.restore();
 
-    // Metallic Frame
+    // 金属边框
     const frameGrad = ctx.createRadialGradient(centerX, centerY, wheelRadius, centerX, centerY, outerRadius);
     frameGrad.addColorStop(0, '#855e00'); 
     frameGrad.addColorStop(0.2, '#ffd700'); 
@@ -80,7 +76,7 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
     ctx.strokeStyle = frameGrad;
     ctx.stroke();
 
-    // Bulbs
+    // 装饰灯泡
     const bulbCount = 36;
     for (let i = 0; i < bulbCount; i++) {
       const angle = (i * 2 * Math.PI) / bulbCount;
@@ -108,7 +104,7 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
       }
     }
 
-    // Sectors
+    // 绘制扇区
     items.forEach((item, i) => {
       const startAngle = i * sliceAngle + rotation;
       const endAngle = startAngle + sliceAngle;
@@ -132,7 +128,7 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
       ctx.stroke();
       ctx.restore();
 
-      // Text Labels
+      // 文字标签
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.rotate(startAngle + sliceAngle / 2);
@@ -140,11 +136,10 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
       const isBoss = 'isBoss' in item && (item as any).isBoss;
       const name = ('name' in item ? (item as any).name : 'Spin').toString();
 
-      const nameStartX = wheelRadius * 0.9;
+      const nameStartX = wheelRadius * 0.92;
       const maxWidth = wheelRadius * 0.75;
-      let fontSize = items.length > 30 ? 10 : (items.length > 20 ? 12 : 18);
+      let fontSize = items.length > 40 ? 9 : (items.length > 20 ? 12 : 16);
       
-      // 使用更清晰的字体设置
       ctx.font = `900 ${fontSize}px "Noto Sans SC", sans-serif`;
       
       const metrics = ctx.measureText(name);
@@ -161,14 +156,14 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
       ctx.restore();
     });
 
-    // Inner Ring
+    // 中心控制器外圈
     ctx.beginPath();
     ctx.arc(centerX, centerY, wheelRadius, 0, 2 * Math.PI);
     ctx.strokeStyle = '#d4af37';
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Central Controller
+    // 抽奖按钮底座
     ctx.save();
     ctx.beginPath();
     ctx.arc(centerX, centerY, 75, 0, 2 * Math.PI);
@@ -178,7 +173,7 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
     ctx.fill();
     ctx.restore();
 
-    // Spin Button
+    // SPIN 按钮
     ctx.beginPath();
     ctx.arc(centerX, centerY, 64, 0, 2 * Math.PI);
     const innerBtnGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 64);
@@ -198,7 +193,7 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
     ctx.font = 'bold 16px "Noto Sans SC"';
     ctx.fillText(lang === 'en' ? 'LUCK' : '祝好运', centerX, centerY + 22);
 
-    // Needle
+    // 指针 (指向 12 点钟方向)
     ctx.save();
     ctx.shadowColor = 'rgba(0,0,0,0.4)';
     ctx.shadowBlur = 10;
@@ -222,22 +217,43 @@ const Wheel: React.FC<WheelProps> = ({ participants, isSpinning, targetWinnerInd
 
   useEffect(() => {
     if (isSpinning && participants.length > 0 && targetWinnerIndex !== null) {
-      const extraSpins = 12 + Math.random() * 8;
       const sliceAngle = (2 * Math.PI) / participants.length;
-      const targetRotation = rotationRef.current + (extraSpins * 2 * Math.PI) - (targetWinnerIndex * sliceAngle + sliceAngle / 2) - Math.PI / 2;
+      
+      // 核心修复逻辑：
+      // 1. 我们希望指针位置 (定死在 -PI/2) 对应于扇区的中心
+      // 2. 扇区中心位置公式：index * sliceAngle + sliceAngle / 2
+      // 3. 旋转后的落点公式：(index * sliceAngle + sliceAngle / 2 + FinalRotation) = -PI/2
+      // 4. 所以 FinalRotation = -PI/2 - (index * sliceAngle + sliceAngle / 2)
+      
+      const extraSpins = 12 + Math.floor(Math.random() * 8); // 随机转 12-20 圈
+      const currentRotationMod = rotationRef.current % (2 * Math.PI);
+      
+      // 目标落点相对于 0 度的位置 (为了对准 12 点钟，我们需要 -90度偏移)
+      const targetLanding = (2 * Math.PI) - (targetWinnerIndex * sliceAngle + sliceAngle / 2) - (Math.PI / 2);
+      
+      // 计算从当前位置到目标的距离
+      const distance = (targetLanding - currentRotationMod + 4 * Math.PI) % (2 * Math.PI);
+      
+      // 最终总旋转值 = 当前累加值 + 补齐距离 + 额外圈数
+      const finalTargetRotation = rotationRef.current + distance + (extraSpins * 2 * Math.PI);
+
       const startTime = performance.now();
-      const duration = 8000;
+      const duration = 8000; // 旋转持续 8 秒
 
       const animate = (now: number) => {
         const elapsed = now - startTime;
         const progress = Math.min(elapsed / duration, 1);
+        
+        // Quintic ease-out 曲线，前快后慢，非常平滑
         const easeOut = 1 - Math.pow(1 - progress, 5); 
-        const currentRot = rotationRef.current + (targetRotation - rotationRef.current) * easeOut;
+        const currentRot = rotationRef.current + (finalTargetRotation - rotationRef.current) * easeOut;
+        
         setRotation(currentRot);
+        
         if (progress < 1) {
           requestAnimationFrame(animate);
         } else {
-          rotationRef.current = currentRot % (2 * Math.PI);
+          rotationRef.current = finalTargetRotation; // 保存完整累加值
           onSpinEnd();
         }
       };
