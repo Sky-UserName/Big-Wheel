@@ -5,12 +5,11 @@ import { Employee, Prize } from '../types';
 interface WinnerModalProps {
   winner: Employee | null;
   prize: Prize | null;
-  blessing?: string;
   onClose: () => void;
   lang: 'en' | 'zh';
 }
 
-const WinnerModal: React.FC<WinnerModalProps> = ({ winner, prize, blessing, onClose, lang }) => {
+const WinnerModal: React.FC<WinnerModalProps> = ({ winner, prize, onClose, lang }) => {
   const [showAngpao, setShowAngpao] = useState(false);
 
   useEffect(() => {
@@ -32,8 +31,7 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, prize, blessing, onCl
       angpao: "RM 100 Red Packet",
       claimed: "CLAIMED",
       confirm: "Confirm & Close",
-      allParticipants: "*Extra Red Packet Gift",
-      aiHost: "AI HOST SAYS"
+      allParticipants: "*Extra Red Packet Gift"
     },
     zh: {
       victory: "恭喜中奖！",
@@ -44,8 +42,7 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, prize, blessing, onCl
       angpao: "100元现金红包",
       claimed: "已领取",
       confirm: "确认并关闭",
-      allParticipants: "*红包奖励全员有份",
-      aiHost: "AI 主持人贺词"
+      allParticipants: "*红包奖励全员有份"
     }
   }[lang];
 
@@ -71,12 +68,6 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, prize, blessing, onCl
                <span className="text-white/40 text-[9px] font-bold uppercase tracking-[0.2em]">{t.officialWinner}</span>
                <span className="h-[1px] w-6 bg-yellow-500/30"></span>
             </div>
-          </div>
-
-          {/* AI 贺词显示区域 */}
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-2xl p-4 italic text-yellow-200 text-sm leading-relaxed relative">
-            <div className="absolute -top-3 left-4 bg-red-800 px-2 text-[8px] font-black text-yellow-500 uppercase tracking-widest border border-yellow-500/40">{t.aiHost}</div>
-            {blessing ? blessing : <div className="flex items-center justify-center gap-2 py-2"><span className="w-2 h-2 bg-yellow-500 rounded-full animate-ping"></span>正在生成贺词...</div>}
           </div>
 
           <div className="space-y-3">

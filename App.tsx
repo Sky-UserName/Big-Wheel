@@ -1,14 +1,11 @@
-
 import React, { useState, useCallback, useMemo } from 'react';
 import Wheel from './components/Wheel';
 import WinnerModal from './components/WinnerModal';
 import { Employee, Prize } from './types';
 import { DEFAULT_EMPLOYEES, DEFAULT_PRIZES } from './constants';
-import { generateBlessing } from './services/geminiService';
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<'en' | 'zh'>('zh');
-  // 初始加载时洗牌名单
   const [allEmployees, setAllEmployees] = useState<Employee[]>(() => 
     [...DEFAULT_EMPLOYEES].sort(() => Math.random() - 0.5)
   );
@@ -18,14 +15,12 @@ const App: React.FC = () => {
   
   const [lastWinner, setLastWinner] = useState<Employee | null>(null);
   const [lastPrize, setLastPrize] = useState<Prize | null>(null);
-  const [aiBlessing, setAiBlessing] = useState<string>("");
 
   const [showConfig, setShowConfig] = useState(false);
   const [newName, setNewName] = useState("");
 
   const currentPrize = useMemo(() => prizes.find(p => p.id === selectedPrizeId), [prizes, selectedPrizeId]);
 
-  // 规则过滤逻辑（保持不变）
   const activeEmployeesForWheel = useMemo(() => {
     if (!currentPrize) return [];
     let filtered = allEmployees.filter(e => !e.hasWon && !e.neverWins);
@@ -109,19 +104,15 @@ const App: React.FC = () => {
     setIsSpinning(true);
     setLastWinner(null);
     setLastPrize(null);
-    setAiBlessing("");
   };
 
-  const handleSpinEnd = useCallback(async () => {
+  const handleSpinEnd = useCallback(() => {
     if (!plannedWinner || !currentPrize) return;
 
     setLastWinner(plannedWinner);
     setLastPrize(currentPrize);
     setIsSpinning(false);
     
-    // 异步获取 AI 贺词
-    generateBlessing(plannedWinner.name, plannedWinner.department, currentPrize.name).then(setAiBlessing);
-
     setAllEmployees(prev => prev.map(e => e.id === plannedWinner.id ? { ...e, hasWon: true } : e));
     
     setPrizes(prev => {
@@ -255,7 +246,6 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <div className="text-[10px] font-bold text-white/20">#{String(i + 1).padStart(3, '0')}</div>
                     <div className="flex flex-col">
-                       {/* 名单内不再显示任何 Boss 或特殊标签 */}
                        <span className={`font-bold ${emp.hasWon ? 'line-through text-white/40' : 'text-white group-hover:text-yellow-400'}`}>{emp.name}</span>
                     </div>
                   </div>
@@ -270,8 +260,7 @@ const App: React.FC = () => {
       <WinnerModal 
         winner={lastWinner} 
         prize={lastPrize} 
-        blessing={aiBlessing}
-        onClose={() => { setLastWinner(null); setLastPrize(null); setAiBlessing(""); }} 
+        onClose={() => { setLastWinner(null); setLastPrize(null); }} 
         lang={lang} 
       />
 
