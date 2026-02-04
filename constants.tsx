@@ -68,10 +68,10 @@ export const DEFAULT_PRIZES: Prize[] = [
     reservedFor: 'TEOH ZHEN QING' 
   },
   { 
-    id: 'p3', 
+     id: 'p3', 
     level: 'Third Prize', 
     name: 'Smart watch', 
-    icon: 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&q=80&w=600', 
+    icon: '/images/Smart watch.jpg', 
     total: 1, 
     remaining: 1, 
     winners: [] 
