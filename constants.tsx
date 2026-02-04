@@ -71,7 +71,7 @@ export const DEFAULT_PRIZES: Prize[] = [
      id: 'p3', 
     level: 'Third Prize', 
     name: 'Smart watch', 
-    icon: '/images/Smart watch.jpg', 
+    icon: '/images/SmartWatch.jpg', 
     total: 1, 
     remaining: 1, 
     winners: [] 
