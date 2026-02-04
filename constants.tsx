@@ -51,7 +51,7 @@ export const DEFAULT_PRIZES: Prize[] = [
     id: 'p1', 
     level: 'First Prize', 
     name: 'iPhone 17 256GB', 
-    icon: 'https://images.unsplash.com/photo-1621330396173-e41b1cafd17f?auto=format&fit=crop&q=80&w=600', 
+    icon: 'https://img1.kakaku.k-img.com/images/productimage/l/J0000048748.jpg', 
     total: 1, 
     remaining: 1, 
     winners: [], 
@@ -71,7 +71,7 @@ export const DEFAULT_PRIZES: Prize[] = [
      id: 'p3', 
     level: 'Third Prize', 
     name: 'Smart watch', 
-    icon: '/images/Smartwatch.jpg', 
+    icon: 'https://www.lapcare.com/cdn/shop/files/Fitso_3_black.jpg?v=1757325785&width=600', 
     total: 1, 
     remaining: 1, 
     winners: [] 
@@ -88,9 +88,9 @@ export const DEFAULT_PRIZES: Prize[] = [
   { id: 'p5', level: 'Consolation prize', name: 'Pressure cooker', icon: 'https://www.ikea.com/jp/en/images/products/ikea-365-pressure-cooker-stainless-steel__0812235_pe771975_s5.jpg?fit=crop&q=80&w=200', total: 1, remaining: 1, winners: [] },
   { id: 'p6', level: 'Consolation prize', name: 'Headphone', icon: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&q=80&w=200', total: 6, remaining: 6, winners: [] },
   { id: 'p7', level: 'Consolation prize', name: 'Air fryer', icon: 'https://m.media-amazon.com/images/I/51gck0ednrL._AC_SX679_.jpg?auto=format&fit=crop&q=80&w=200', total: 1, remaining: 1, winners: [] },
-  { id: 'p8', level: 'Consolation prize', name: 'Vacuum cleaner', icon: 'https://images.unsplash.com/photo-1558317374-067df5f15430?auto=format&fit=crop&q=80&w=200', total: 3, remaining: 3, winners: [] },
-  { id: 'p9', level: 'Consolation prize', name: 'Cordless Iron', icon: 'https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?auto=format&fit=crop&q=80&w=200', total: 2, remaining: 2, winners: [] },
-  { id: 'p10', level: 'Consolation prize', name: 'Angpao', icon: 'https://images.unsplash.com/photo-1613919113166-ca231660d16a?auto=format&fit=crop&q=80&w=200', total: 100, remaining: 100, winners: [] }
+  { id: 'p8', level: 'Consolation prize', name: 'Vacuum cleaner', icon: 'https://www.godfreys.com.au/cdn/shop/files/11120772_Sauber-Smart-Bagless-Vacuum-Cleaner_1.jpg?v=1729824755&width=200', total: 3, remaining: 3, winners: [] },
+  { id: 'p9', level: 'Consolation prize', name: 'Cordless Iron', icon: 'https://m.media-amazon.com/images/I/61zGGRUBNHL._AC_SY300_SX300_QL70_FMwebp_.jpg', total: 2, remaining: 2, winners: [] },
+  { id: 'p10', level: 'Consolation prize', name: 'Angpao', icon: 'https://printingmalaysia.com.my/wp-content/uploads/2024/08/angpao.png', total: 100, remaining: 100, winners: [] }
 ];
 
 export const WHEEL_COLORS = [
