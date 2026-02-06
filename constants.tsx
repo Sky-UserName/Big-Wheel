@@ -103,7 +103,7 @@ export const DEFAULT_PRIZES: Prize[] = [
     id: 'p11', 
     level: 'Special Prize', 
     name: 'Smart watch', 
-    icon: 'https://istarmax.com/wp-content/uploads/2024/01/gts7-pro-smart-watch-view-6-en-jpg.webp', 
+    icon: 'https://m.media-amazon.com/images/I/61FF7ZN3-mL._AC_SX679_.jpg', 
     total: 1, 
     remaining: 1, 
     winners: [] 
