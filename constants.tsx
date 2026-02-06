@@ -100,6 +100,15 @@ export const DEFAULT_PRIZES: Prize[] = [
     winners: [] 
   },
   { 
+    id: 'p11', 
+    level: 'Special Prize', 
+    name: 'Smart watch', 
+    icon: 'https://istarmax.com/wp-content/uploads/2024/01/gts7-pro-smart-watch-view-6-en-jpg.webp', 
+    total: 1, 
+    remaining: 1, 
+    winners: [] 
+  },
+  { 
     id: 'p3', 
     level: 'Third Prize', 
     name: 'Cash RM 2888', 
@@ -109,6 +118,7 @@ export const DEFAULT_PRIZES: Prize[] = [
     winners: [] , 
     reservedFor: 'TEOH ZHEN QING' 
   },
+  
   { 
     id: 'p2', 
     level: 'Second Prize', 
@@ -122,7 +132,7 @@ export const DEFAULT_PRIZES: Prize[] = [
     id: 'p1', 
     level: 'First Prize', 
     name: 'iPhone 17 Pro ', 
-    icon: 'https://img1.kakaku.k-img.com/images/productimage/l/J0000048748.jpg', 
+    icon: 'https://anamall.ana.co.jp/contents/0031/img/goods/L/0031-MG8E4J.jpg', 
     total: 1, 
     remaining: 1, 
     winners: [], 
