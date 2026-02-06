@@ -1,14 +1,34 @@
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import Wheel from './components/Wheel';
 import WinnerModal from './components/WinnerModal';
 import { Employee, Prize } from './types';
 import { DEFAULT_EMPLOYEES, DEFAULT_PRIZES } from './constants';
 
 const App: React.FC = () => {
-  const [lang, setLang] = useState<'en' | 'zh'>('en');
+  // 设置默认语言为英文
+  const lang = 'en';
   
-  // 初始化名单时，直接过滤掉老板 (Owen, Lucas, David)
+  // ==========================================
+  // 音频资源配置区 (AUDIO_CONFIG_START)
+  // 您可以在此处更换为您自己寻找的喜庆音效 URL
+  // ==========================================
+  const spinAudio = useRef<HTMLAudioElement | null>(null);
+  const winAudio = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // 1. 转盘转动时的循环音效 (建议选择鼓点或齿轮声)
+    spinAudio.current = new Audio('https://downsc.chinaz.net/Files/DownLoad/sound1/201907/11724.mp3'); 
+  
+
+    // 2. 中奖时的庆祝音效 (建议选择鞭炮、礼花或欢呼声)
+     winAudio.current = new Audio('https://sounddino.com/mp3/44/draw.mp3');  
+  }, []);
+  // ==========================================
+  // 音频资源配置区 (AUDIO_CONFIG_END)
+  // ==========================================
+
+  // 初始化名单时，过滤掉老板 (Owen, Lucas, David)
   const [allEmployees, setAllEmployees] = useState<Employee[]>(() => 
     DEFAULT_EMPLOYEES.filter(e => !e.isBoss).sort(() => Math.random() - 0.5)
   );
@@ -22,25 +42,20 @@ const App: React.FC = () => {
 
   const [showConfig, setShowConfig] = useState(false);
   const [newName, setNewName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const currentPrize = useMemo(() => prizes.find(p => p.id === selectedPrizeId), [prizes, selectedPrizeId]);
 
-  // 获取所有被内定的人员名单 (用于跨奖项隔离)
   const allReservedNames = useMemo(() => {
-    return prizes
-      .filter(p => p.reservedFor)
-      .map(p => p.reservedFor!.toUpperCase());
+    return prizes.filter(p => p.reservedFor).map(p => p.reservedFor!.toUpperCase());
   }, [prizes]);
 
-  // 大转盘上显示的名单 (包含测试员 Evelyn)
+  // 转盘实际参与滚动的池子
   const activeEmployeesForWheel = useMemo(() => {
     if (!currentPrize) return [];
-    
-    // 基础：未中奖
     let filtered = allEmployees.filter(e => !e.hasWon);
 
     if (currentPrize.reservedFor) {
-      // 场景 A：当前是内定奖。池子包含：该内定人 + 其他“完全没有被内定过”的人（含测试员）
       const reservedName = currentPrize.reservedFor.toUpperCase();
       filtered = filtered.filter(e => {
         const isThisReserved = e.name.toUpperCase().includes(reservedName);
@@ -48,50 +63,37 @@ const App: React.FC = () => {
         return isThisReserved || !isReservedForOtherPrizes;
       });
     } else {
-      // 场景 B：当前是普通奖。池子必须排除：所有“内定给其他奖项”的人员
       filtered = filtered.filter(e => !allReservedNames.includes(e.name.toUpperCase()));
     }
-    
     return filtered;
   }, [allEmployees, currentPrize, allReservedNames]);
+
+  // 搜索过滤后的显示名单
+  const displayedEmployees = useMemo(() => {
+    return allEmployees.filter(e => 
+      e.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [allEmployees, searchTerm]);
 
   const [targetWinnerIndex, setTargetWinnerIndex] = useState<number | null>(null);
   const [plannedWinner, setPlannedWinner] = useState<Employee | null>(null);
 
   const t = {
-    en: {
-      drawTitle: "Grand Lucky Draw",
-      tagline: "Celebration Night · Fortune Awaits Everyone",
-      currentCategory: "Active Prize Item",
-      prizes: "PRIZE BOARD",
-      pool: "GUEST LIST",
-      guests: "QUALIFIED",
-      namePlaceholder: "Employee Name",
-      register: "Add Guest",
-      left: "Stock",
-      staff: "Member",
-      selectPrize: "Pick a prize",
-      langToggle: "中文",
-      won: "Winner",
-      remove: "Remove"
-    },
-    zh: {
-      drawTitle: "幸运大抽奖",
-      tagline: "年会盛典 · 好运与你同行",
-      currentCategory: "当前抽奖奖项",
-      prizes: "奖项看板",
-      pool: "参奖名单",
-      guests: "位合格嘉宾",
-      namePlaceholder: "员工姓名",
-      register: "登记入场",
-      left: "剩余",
-      staff: "员工",
-      selectPrize: "请选择奖项",
-      langToggle: "English",
-      won: "中奖者",
-      remove: "删除"
-    }
-  }[lang];
+    drawTitle: "GALA 2026 LUCKY DRAW",
+    tagline: "Celebrate Success · Fortune Awaits",
+    currentCategory: "Currently Drawing",
+    prizes: "PRIZE BOARD",
+    pool: "GUEST LIST",
+    guests: "QUALIFIED GUESTS",
+    namePlaceholder: "Enter name...",
+    register: "Register Guest",
+    searchPlaceholder: "Search guests (A-Z)...",
+    left: "STOCK",
+    staff: "Member",
+    selectPrize: "Select a prize to start",
+    won: "WINNER",
+    remove: "Remove"
+  };
 
   const handleAddEmployee = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,30 +115,26 @@ const App: React.FC = () => {
   const handleSpinStart = () => {
     if (isSpinning) return;
     if (activeEmployeesForWheel.length === 0) {
-      alert(lang === 'zh' ? "没有符合该奖项的候选人！" : "No qualified candidates!");
+      alert("No qualified candidates left for this prize!");
       return;
     }
     if (!currentPrize || currentPrize.remaining <= 0) {
-      alert(lang === 'zh' ? "该奖项已抽完！" : "Out of stock!");
+      alert("No more units available for this prize!");
       return;
     }
 
     let winner: Employee | null = null;
-    
-    // 1. 优先判定内定
     if (currentPrize.reservedFor) {
       const reservedName = currentPrize.reservedFor.toUpperCase();
       winner = activeEmployeesForWheel.find(e => e.name.toUpperCase().includes(reservedName)) || null;
     }
 
-    // 2. 如果没内定，从池子中随机选。但必须拦截 neverWins (Evelyn)
     if (!winner) {
       const trulyQualified = activeEmployeesForWheel.filter(e => !e.neverWins);
       if (trulyQualified.length > 0) {
         winner = trulyQualified[Math.floor(Math.random() * trulyQualified.length)];
       } else {
-        // 万一池子里全是测试员（极端情况）
-        alert(lang === 'zh' ? "没有可中奖的有效候选人！" : "No winnable candidates!");
+        alert("No winnable candidates in the pool!");
         return;
       }
     }
@@ -147,10 +145,27 @@ const App: React.FC = () => {
     setIsSpinning(true);
     setLastWinner(null);
     setLastPrize(null);
+
+    // ==========================================
+    // 音频触发：转动开始 (AUDIO_TRIGGER_SPIN_START)
+    // ==========================================
+    if (spinAudio.current) {
+      spinAudio.current.currentTime = 0;
+      spinAudio.current.play().catch(() => {});
+    }
   };
 
   const handleSpinEnd = useCallback(() => {
     if (!plannedWinner || !currentPrize) return;
+
+    // ==========================================
+    // 音频触发：转动结束并中奖 (AUDIO_TRIGGER_WIN_START)
+    // ==========================================
+    if (spinAudio.current) spinAudio.current.pause(); // 停止转动音
+    if (winAudio.current) {
+      winAudio.current.currentTime = 0;
+      winAudio.current.play().catch(() => {}); // 播放中奖音
+    }
 
     setLastWinner(plannedWinner);
     setLastPrize(currentPrize);
@@ -182,30 +197,22 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center py-8 relative overflow-hidden text-white">
-      {/* 背景装饰保持不变 */}
+      {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#b91d1d_0%,#450a0a_100%)]"></div>
         <div className="absolute top-[10%] left-[-5%] w-[800px] h-[800px] bg-yellow-500/5 rounded-full blur-[150px]"></div>
       </div>
 
       <header className="z-10 text-center mb-10 px-4">
-        <div className="flex justify-center mb-4">
-           <button 
-             onClick={() => setLang(lang === 'en' ? 'zh' : 'en')}
-             className="px-4 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-500 text-xs font-bold hover:bg-yellow-500 hover:text-red-950 transition-all"
-           >
-             {t.langToggle}
-           </button>
-        </div>
-        <h1 className="text-7xl md:text-9xl font-festive gold-text font-bold mb-4 drop-shadow-xl tracking-wide">GALA 2026</h1>
+        <h1 className="text-7xl md:text-9xl font-festive gold-text font-bold mb-4 drop-shadow-xl tracking-wide">ANNUAL GALA</h1>
         <div className="inline-block px-12 py-3 rounded-full bg-black/40 border border-yellow-500/40">
            <span className="text-yellow-400 font-black tracking-[0.4em] text-xl md:text-3xl uppercase">{t.drawTitle}</span>
         </div>
       </header>
 
       <div className="z-10 w-full max-w-[1900px] flex flex-col xl:flex-row gap-12 items-start justify-center px-10">
+        {/* Main Drawing Section */}
         <div className="flex-[3] flex flex-col items-center space-y-12 w-full">
-          {/* 奖项展示区 */}
           <div className="w-full max-w-3xl p-1 bg-gradient-to-br from-yellow-500/40 via-yellow-500/10 to-transparent rounded-[3rem]">
             <div className="bg-black/60 backdrop-blur-2xl rounded-[2.8rem] p-8 flex items-center justify-between border border-white/5">
               <div className="flex flex-col">
@@ -238,13 +245,14 @@ const App: React.FC = () => {
           />
         </div>
 
+        {/* Sidebar Sections */}
         <div className="w-full xl:w-[500px] flex flex-col space-y-8">
-          {/* 奖项看板 */}
+          {/* Prize Board */}
           <div className="bg-black/40 backdrop-blur-3xl rounded-[3rem] p-8 border border-yellow-500/20 shadow-2xl">
              <h3 className="text-2xl font-black text-yellow-500 tracking-tighter mb-6 flex items-center gap-3">
                <span className="text-3xl">🏆</span> {t.prizes}
              </h3>
-             <div className="grid grid-cols-1 gap-4">
+             <div className="grid grid-cols-1 gap-4 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
                {prizes.map((p) => (
                  <div key={p.id} className="flex flex-col gap-2">
                    <button
@@ -282,18 +290,32 @@ const App: React.FC = () => {
              </div>
           </div>
 
-          {/* 参奖名单列表 (已排除老板) */}
+          {/* Guest List List */}
           <div className="bg-black/40 backdrop-blur-3xl rounded-[3rem] p-8 border border-yellow-500/20 shadow-2xl flex-1 flex flex-col min-h-[400px]">
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex justify-between items-center mb-4">
               <h3 className="text-2xl font-black text-yellow-500 tracking-tighter flex items-center gap-3">
                 <span className="text-3xl">👥</span> {t.pool}
               </h3>
               <div className="flex items-center gap-3">
-                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{activeEmployeesForWheel.length} {t.guests}</span>
+                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest">{allEmployees.length} {t.guests}</span>
                 <button onClick={() => setShowConfig(!showConfig)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-white/60 hover:bg-yellow-500 hover:text-red-950 transition-all shadow-lg">
                   {showConfig ? '×' : '+'}
                 </button>
               </div>
+            </div>
+
+            {/* Search Input */}
+            <div className="mb-4 relative">
+              <input 
+                type="text" 
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-yellow-500/50 transition-all"
+                placeholder={t.searchPlaceholder}
+              />
+              <svg className="absolute right-3 top-2.5 h-4 w-4 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
 
             {showConfig && (
@@ -304,13 +326,13 @@ const App: React.FC = () => {
             )}
 
             <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar pr-2 max-h-[500px]">
-              {allEmployees.map((emp, i) => (
+              {displayedEmployees.map((emp, i) => (
                 <div key={emp.id} className={`p-3 rounded-xl border flex justify-between items-center transition-all group ${emp.hasWon ? 'bg-black/20 border-white/5 opacity-30 grayscale' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>
                   <div className="flex items-center gap-4">
-                    <div className="text-[10px] font-bold text-white/20">#{String(i + 1).padStart(3, '0')}</div>
+                    <div className="text-[10px] font-bold text-white/20">#{String(allEmployees.indexOf(emp) + 1).padStart(3, '0')}</div>
                     <div className="flex flex-col">
                        <span className={`font-bold transition-colors ${emp.hasWon ? 'line-through text-white/40' : 'text-white group-hover:text-yellow-400'}`}>
-                         {emp.name} {emp.neverWins && <span className="ml-2 text-[8px] opacity-40 font-normal">(Tester)</span>}
+                         {emp.name}
                        </span>
                     </div>
                   </div>
@@ -329,6 +351,9 @@ const App: React.FC = () => {
                   </div>
                 </div>
               ))}
+              {displayedEmployees.length === 0 && (
+                <div className="text-center py-10 opacity-20 italic">No guests found</div>
+              )}
             </div>
           </div>
         </div>

@@ -18,8 +18,6 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      },
-    // 添加这行以将 images 目录作为静态资源服务
-    publicDir: 'images'
+      }
     };
 });

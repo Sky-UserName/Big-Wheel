@@ -25,7 +25,6 @@ export const DEFAULT_EMPLOYEES: Employee[] = [
   { id: '21', name: 'JAYDEN LEE RONG SHYN', department: 'Staff' },
   { id: '22', name: 'David', department: 'Management', isBoss: true },
   { id: '23', name: 'SIU CHUN XIONG', department: 'Staff' },
-  { id: '24', name: 'Evelyn', department: 'Staff', neverWins: true },
   { id: '25', name: 'AHMAD AIMAN AMIN', department: 'Staff' },
   { id: '26', name: 'LOW CHIA HUNG', department: 'Staff' },
   { id: '27', name: 'CHOONG WAI MAN', department: 'Staff' },
@@ -122,7 +121,7 @@ export const DEFAULT_PRIZES: Prize[] = [
   { 
     id: 'p1', 
     level: 'First Prize', 
-    name: 'iPhone 17 ', 
+    name: 'iPhone 17 Pro ', 
     icon: 'https://img1.kakaku.k-img.com/images/productimage/l/J0000048748.jpg', 
     total: 1, 
     remaining: 1, 

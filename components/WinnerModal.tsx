@@ -46,6 +46,10 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, prize, onClose, lang 
     }
   }[lang];
 
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    e.currentTarget.src = "https://images.unsplash.com/photo-1578262825743-a4e402caab76?auto=format&fit=crop&q=80&w=400";
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 bg-black/95 backdrop-blur-2xl">
       <div className="relative w-full max-w-xl bg-gradient-to-b from-red-600 via-red-800 to-red-950 rounded-[3rem] p-0.5 shadow-[0_0_80px_rgba(234,179,8,0.3)] border border-yellow-500/30 overflow-hidden animate-[bounce_0.5s_ease-out]">
@@ -72,8 +76,13 @@ const WinnerModal: React.FC<WinnerModalProps> = ({ winner, prize, onClose, lang 
 
           <div className="space-y-3">
             <div className="flex items-center gap-4 bg-yellow-500 text-red-950 rounded-[2rem] p-4 shadow-xl border-b-4 border-yellow-700">
-              <div className="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-red-950/20 shadow-lg">
-                 <img src={prize.icon} alt={prize.name} className="w-full h-full object-cover" />
+              <div className="w-24 h-24 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-2xl border-2 border-red-950/20 shadow-lg bg-black/10">
+                 <img 
+                    src={prize.icon} 
+                    alt={prize.name} 
+                    onError={handleImageError}
+                    className="w-full h-full object-cover" 
+                  />
               </div>
               <div className="text-left flex-1">
                 <div className="text-[8px] font-black uppercase tracking-widest opacity-60 mb-0.5">{t.category}: {prize.level}</div>
